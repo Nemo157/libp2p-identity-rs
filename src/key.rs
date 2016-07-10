@@ -49,6 +49,18 @@ impl RSAPubKey {
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
+
+    pub fn verify(&self, msg: &[u8], sig: &[u8]) -> io::Result<()> {
+        let result = signature::verify(
+            &signature::RSA_PKCS1_2048_8192_SHA256,
+            Input::from(&self.bytes),
+            Input::from(msg),
+            Input::from(sig));
+        match result {
+            Ok(()) => Ok(()),
+            Err(()) => Err(io::Error::new(io::ErrorKind::Other, "signature verify failed")),
+        }
+    }
 }
 
 impl RSAPrivKey {
@@ -75,7 +87,7 @@ impl RSAPrivKey {
 impl fmt::Debug for RSAPubKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("RSAPubKey")
-            .field("bytes", &self.bytes)
+            .field("bytes", &self.bytes.len())
             .finish()
     }
 }
@@ -83,7 +95,8 @@ impl fmt::Debug for RSAPubKey {
 impl fmt::Debug for RSAPrivKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("RSAPrivKey")
-            .field("key", &self.bytes)
+            .field("bytes", &self.bytes.len())
+            .field("pub_key", &self.pub_key)
             .finish()
     }
 }

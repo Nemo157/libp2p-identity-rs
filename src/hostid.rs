@@ -12,7 +12,8 @@ pub struct HostId {
 
 impl HostId {
     pub fn new(hash: MultiHash, key: RSAPrivKey) -> Result<HostId, ()> {
-        if Some(Ok(true)) != hash.validate(key.pub_key().as_bytes()) {
+        let key_bytes = try!(key.pub_key().to_protobuf().map_err(|_| ()));
+        if Some(Ok(true)) != hash.validate(key_bytes) {
             return Err(());
         }
 
