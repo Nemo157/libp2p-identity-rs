@@ -1,0 +1,8 @@
+[package]
+name = "libp2p-identity"
+version = "0.1.0"
+authors = ["Wim Looman <wim@nemo157.com>"]
+
+[dependencies]
+multihash = { path = "../multihash", features = ["generation", "validation", "sha2"] }
+openssl = "*"
