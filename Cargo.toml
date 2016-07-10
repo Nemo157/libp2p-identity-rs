@@ -6,3 +6,4 @@ authors = ["Wim Looman <wim@nemo157.com>"]
 [dependencies]
 multihash = { path = "../multihash", features = ["generation", "validation", "sha2"] }
 openssl = "*"
+protobuf = "*"

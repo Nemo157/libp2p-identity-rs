@@ -1,6 +1,7 @@
+use std::io;
 use multihash::MultiHash;
 
-use key::RSAPrivKey;
+use key::{ RSAPrivKey, RSAPubKey };
 
 #[derive(Debug)]
 pub struct HostId {
@@ -10,7 +11,8 @@ pub struct HostId {
 
 impl HostId {
     pub fn new(hash: MultiHash, key: RSAPrivKey) -> Result<HostId, ()> {
-        if Some(Ok(true)) != hash.validate(key.pub_key().to_bytes()) {
+        let key_bytes = try!(key.pub_key().to_bytes().map_err(|_| ()));
+        if Some(Ok(true)) != hash.validate(key_bytes) {
             return Err(());
         }
 
@@ -20,14 +22,19 @@ impl HostId {
         })
     }
 
-    pub fn generate() -> HostId {
+    pub fn generate() -> io::Result<HostId> {
         HostId::from_key(RSAPrivKey::generate())
     }
 
-    pub fn from_key(key: RSAPrivKey) -> HostId {
-        HostId {
-            hash: MultiHash::generate(key.pub_key().to_bytes()),
+    pub fn from_key(key: RSAPrivKey) -> io::Result<HostId> {
+        let key_bytes = try!(key.pub_key().to_bytes());
+        Ok(HostId {
+            hash: MultiHash::generate(key_bytes),
             key: key,
-        }
+        })
+    }
+
+    pub fn pub_key(&self) -> &RSAPubKey {
+        self.key.pub_key()
     }
 }
