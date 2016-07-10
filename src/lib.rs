@@ -1,6 +1,7 @@
 extern crate multihash;
-extern crate openssl;
 extern crate protobuf;
+extern crate ring;
+extern crate untrusted;
 
 mod data;
 mod hostid;

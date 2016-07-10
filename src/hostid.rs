@@ -1,5 +1,6 @@
 use std::io;
 use multihash::MultiHash;
+use ring::rand::SecureRandom;
 
 use key::{ RSAPrivKey, RSAPubKey };
 
@@ -11,8 +12,7 @@ pub struct HostId {
 
 impl HostId {
     pub fn new(hash: MultiHash, key: RSAPrivKey) -> Result<HostId, ()> {
-        let key_bytes = try!(key.pub_key().to_bytes().map_err(|_| ()));
-        if Some(Ok(true)) != hash.validate(key_bytes) {
+        if Some(Ok(true)) != hash.validate(key.pub_key().as_bytes()) {
             return Err(());
         }
 
@@ -22,16 +22,15 @@ impl HostId {
         })
     }
 
-    pub fn generate() -> io::Result<HostId> {
-        HostId::from_key(RSAPrivKey::generate())
+    pub fn from_der(priv_bytes: Vec<u8>, pub_bytes: Vec<u8>) -> io::Result<HostId> {
+        Ok(HostId {
+            hash: MultiHash::generate(&pub_bytes),
+            key: try!(RSAPrivKey::from_der(priv_bytes, pub_bytes)),
+        })
     }
 
-    pub fn from_key(key: RSAPrivKey) -> io::Result<HostId> {
-        let key_bytes = try!(key.pub_key().to_bytes());
-        Ok(HostId {
-            hash: MultiHash::generate(key_bytes),
-            key: key,
-        })
+    pub fn sign(&self, rand: &SecureRandom, bytes: &[u8]) -> io::Result<Vec<u8>> {
+        self.key.sign(rand, bytes)
     }
 
     pub fn pub_key(&self) -> &RSAPubKey {

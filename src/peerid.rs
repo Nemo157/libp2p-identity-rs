@@ -17,8 +17,7 @@ pub enum PeerId {
 
 impl PeerId {
     pub fn new(hash: MultiHash, key: RSAPubKey) -> Result<PeerId, ()> {
-        let key_bytes = try!(key.to_bytes().map_err(|_| ()));
-        if Some(Ok(true)) != hash.validate(key_bytes) {
+        if Some(Ok(true)) != hash.validate(key.as_bytes()) {
             return Err(());
         }
 
@@ -28,14 +27,13 @@ impl PeerId {
         })
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> io::Result<PeerId> {
-        RSAPubKey::from_bytes(bytes).and_then(PeerId::from_key)
+    pub fn from_protobuf(bytes: &[u8]) -> io::Result<PeerId> {
+        RSAPubKey::from_protobuf(bytes).and_then(PeerId::from_key)
     }
 
     pub fn from_key(key: RSAPubKey) -> io::Result<PeerId> {
-        let key_bytes = try!(key.to_bytes());
         Ok(PeerId::Proven {
-            hash: MultiHash::generate(key_bytes),
+            hash: MultiHash::generate(key.as_bytes()),
             key: key,
         })
     }
