@@ -2,7 +2,7 @@ use std::fmt;
 use std::io;
 use ring::rand::SecureRandom;
 use ring::signature::{ self, RSAKeyPair };
-use protobuf::{ CodedInputStream, Message, ProtobufError };
+use protobuf::{ parse_from_bytes, Message, ProtobufError };
 use untrusted::Input;
 
 use data;
@@ -30,9 +30,7 @@ fn pbetio(e: ProtobufError) -> io::Error {
 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
-        let mut serialized = data::PublicKey::new();
-        let mut stream = CodedInputStream::from_bytes(bytes);
-        try!(serialized.merge_from(&mut stream).map_err(pbetio));
+        let mut serialized: data::PublicKey = try!(parse_from_bytes(bytes).map_err(pbetio));
         if serialized.get_Type() != data::KeyType::RSA {
             return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
         }
