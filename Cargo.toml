@@ -6,5 +6,5 @@ authors = ["Wim Looman <wim@nemo157.com>"]
 [dependencies]
 multihash = { path = "../multihash", features = ["generation", "validation", "sha2"] }
 protobuf = "*"
-ring = { git = "https://github.com/briansmith/ring", features = ["rsa_signing"] }
+ring = { path = "../ring", features = ["rsa_signing"] }
 untrusted = "*"

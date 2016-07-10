@@ -1,9 +1,11 @@
 use std::fmt;
 use std::io;
 use ring::rand::SecureRandom;
+use ring::rsa;
 use ring::signature::{ self, RSAKeyPair };
 use protobuf::{ parse_from_bytes, Message, ProtobufError };
 use untrusted::Input;
+use ring::der;
 
 use data;
 
@@ -27,6 +29,34 @@ fn pbetio(e: ProtobufError) -> io::Error {
     }
 }
 
+// from PKIX, see RFC 3280 appendix C.3
+fn parse_public_key<'a>(input: Input<'a>) -> Result<(&'a [u8], &'a [u8]), ()> {
+    input.read_all((), |input| {
+        der::nested(input, der::Tag::Sequence, (), |input| {
+            try!(der::nested(input, der::Tag::Sequence, (), |input| {
+                try!(der::nested(input, der::Tag::OID, (), |input| {
+                    let oid = input.skip_to_end();
+                    if oid == Input::from(&[42, 134, 72, 134, 247, 13, 1, 1, 1]) {
+                        Ok(())
+                    } else {
+                        Err(())
+                    }
+                }));
+                try!(der::nested(input, der::Tag::Null, (), |_| Ok(())));
+                Ok(())
+            }));
+            der::nested(input, der::Tag::BitString, (), |input| {
+                let unused = try!(input.read_byte());
+                if unused > 0 { return Err(()); } // can't be bothered to handle, shouldn't happen
+                der::nested(input, der::Tag::Sequence, (), |input| {
+                    let n = try!(der::positive_integer(input));
+                    let e = try!(der::positive_integer(input));
+                    Ok((n.as_slice_less_safe(), e.as_slice_less_safe()))
+                })
+            })
+        })
+    })
+}
 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
@@ -34,6 +64,7 @@ impl RSAPubKey {
         if serialized.get_Type() != data::KeyType::RSA {
             return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
         }
+        println!("got key: {:?}", serialized.get_Data());
         Ok(RSAPubKey { bytes: serialized.take_Data() })
     }
 
@@ -49,9 +80,10 @@ impl RSAPubKey {
     }
 
     pub fn verify(&self, msg: &[u8], sig: &[u8]) -> io::Result<()> {
-        let result = signature::verify(
-            &signature::RSA_PKCS1_2048_8192_SHA256,
-            Input::from(&self.bytes),
+        let pub_key = try!(parse_public_key(Input::from(&self.bytes)).map_err(|_| io::Error::new(io::ErrorKind::Other, "parse public key failed")));
+        let result = rsa::verify(
+            &rsa::RSA_PKCS1_2048_8192_SHA256_INTERNAL,
+            pub_key,
             Input::from(msg),
             Input::from(sig));
         match result {
