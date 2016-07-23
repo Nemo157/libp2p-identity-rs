@@ -64,7 +64,6 @@ impl RSAPubKey {
         if serialized.get_Type() != data::KeyType::RSA {
             return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
         }
-        println!("got key: {:?}", serialized.get_Data());
         Ok(RSAPubKey { bytes: serialized.take_Data() })
     }
 
