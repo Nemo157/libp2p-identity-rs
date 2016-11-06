@@ -1,13 +1,16 @@
 use std::fmt;
+use std::sync::Arc;
 use std::io;
+use ring::der;
 use ring::rand::SecureRandom;
-use ring::rsa;
-use ring::signature::{ self, RSAKeyPair };
+use ring::signature::{ self, RSAKeyPair, RSASigningState };
+use ring::signature::primitive::verify_rsa;
 use protobuf::{ parse_from_bytes, Message, ProtobufError };
 use untrusted::Input;
-use ring::der;
 
 use data;
+
+const EXPECTED_OID: &'static [u8] = &[42, 134, 72, 134, 247, 13, 1, 1, 1];
 
 #[derive(Clone)]
 pub struct RSAPubKey {
@@ -15,7 +18,7 @@ pub struct RSAPubKey {
 }
 
 pub struct RSAPrivKey {
-    key: RSAKeyPair,
+    key: Arc<RSAKeyPair>,
     bytes: Vec<u8>,
     pub_key: RSAPubKey,
 }
@@ -30,13 +33,13 @@ fn pbetio(e: ProtobufError) -> io::Error {
 }
 
 // from PKIX, see RFC 3280 appendix C.3
-fn parse_public_key<'a>(input: Input<'a>) -> Result<(&'a [u8], &'a [u8]), ()> {
+fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> {
     input.read_all((), |input| {
         der::nested(input, der::Tag::Sequence, (), |input| {
             try!(der::nested(input, der::Tag::Sequence, (), |input| {
                 try!(der::nested(input, der::Tag::OID, (), |input| {
                     let oid = input.skip_to_end();
-                    if oid == Input::from(&[42, 134, 72, 134, 247, 13, 1, 1, 1]) {
+                    if oid == Input::from(EXPECTED_OID) {
                         Ok(())
                     } else {
                         Err(())
@@ -46,12 +49,12 @@ fn parse_public_key<'a>(input: Input<'a>) -> Result<(&'a [u8], &'a [u8]), ()> {
                 Ok(())
             }));
             der::nested(input, der::Tag::BitString, (), |input| {
-                let unused = try!(input.read_byte());
+                let unused = try!(input.read_byte().map_err(|_| ()));
                 if unused > 0 { return Err(()); } // can't be bothered to handle, shouldn't happen
                 der::nested(input, der::Tag::Sequence, (), |input| {
-                    let n = try!(der::positive_integer(input));
-                    let e = try!(der::positive_integer(input));
-                    Ok((n.as_slice_less_safe(), e.as_slice_less_safe()))
+                    let n = try!(der::positive_integer(input).map_err(|_| ()));
+                    let e = try!(der::positive_integer(input).map_err(|_| ()));
+                    Ok((n, e))
                 })
             })
         })
@@ -80,14 +83,14 @@ impl RSAPubKey {
 
     pub fn verify(&self, msg: &[u8], sig: &[u8]) -> io::Result<()> {
         let pub_key = try!(parse_public_key(Input::from(&self.bytes)).map_err(|_| io::Error::new(io::ErrorKind::Other, "parse public key failed")));
-        let result = rsa::verify(
-            &rsa::RSA_PKCS1_2048_8192_SHA256_INTERNAL,
+        let result = verify_rsa(
+            &signature::RSA_PKCS1_2048_8192_SHA256,
             pub_key,
             Input::from(msg),
             Input::from(sig));
         match result {
             Ok(()) => Ok(()),
-            Err(()) => Err(io::Error::new(io::ErrorKind::Other, "signature verify failed")),
+            Err(_) => Err(io::Error::new(io::ErrorKind::Other, "signature verify failed")),
         }
     }
 }
@@ -95,8 +98,8 @@ impl RSAPubKey {
 impl RSAPrivKey {
     pub fn from_der(priv_bytes: Vec<u8>, pub_bytes: Vec<u8>) -> io::Result<RSAPrivKey> {
         match RSAKeyPair::from_der(Input::from(&priv_bytes)) {
-            Ok(key) => Ok(RSAPrivKey { key: key, bytes: priv_bytes, pub_key: RSAPubKey { bytes: pub_bytes } }),
-            Err(()) => Err(io::Error::new(io::ErrorKind::Other, "failed to parse")),
+            Ok(key) => Ok(RSAPrivKey { key: Arc::new(key), bytes: priv_bytes, pub_key: RSAPubKey { bytes: pub_bytes } }),
+            Err(_) => Err(io::Error::new(io::ErrorKind::Other, "failed to parse")),
         }
     }
 
@@ -106,9 +109,12 @@ impl RSAPrivKey {
 
     pub fn sign(&self, rand: &SecureRandom, bytes: &[u8]) -> io::Result<Vec<u8>> {
         let mut sig = vec![0; self.key.public_modulus_len()];
-        match self.key.sign(&signature::RSA_PKCS1_SHA256, rand, bytes, &mut sig) {
-            Ok(()) => Ok(sig),
-            Err(()) => Err(io::Error::new(io::ErrorKind::Other, "failed to sign")),
+        match RSASigningState::new(self.key.clone()) {
+            Ok(mut state) => match state.sign(&signature::RSA_PKCS1_SHA256, rand, bytes, &mut sig) {
+                Ok(()) => Ok(sig),
+                Err(_) => Err(io::Error::new(io::ErrorKind::Other, "failed to sign")),
+            },
+            Err(_) => Err(io::Error::new(io::ErrorKind::Other, "failed to sign")),
         }
     }
 }
