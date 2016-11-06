@@ -1,5 +1,5 @@
 use std::io;
-use multihash::MultiHash;
+use mhash::MultiHash;
 
 use key::RSAPubKey;
 
@@ -7,16 +7,16 @@ use key::RSAPubKey;
 pub enum PeerId {
     Unknown,
     Candidate {
-        hash: MultiHash,
+        hash: MultiHash<[u8; 32]>,
     },
     Proven {
-        hash: MultiHash,
+        hash: MultiHash<[u8; 32]>,
         key: RSAPubKey,
     }
 }
 
 impl PeerId {
-    pub fn new(hash: MultiHash, key: RSAPubKey) -> Result<PeerId, ()> {
+    pub fn new(hash: MultiHash<[u8; 32]>, key: RSAPubKey) -> Result<PeerId, ()> {
         let key_bytes = try!(key.to_protobuf().map_err(|_| ()));
         if Some(Ok(true)) != hash.validate(key_bytes) {
             return Err(());
@@ -34,18 +34,18 @@ impl PeerId {
 
     pub fn from_key(key: RSAPubKey) -> io::Result<PeerId> {
         Ok(PeerId::Proven {
-            hash: MultiHash::generate(try!(key.to_protobuf())),
+            hash: MultiHash::generate_sha2_256(try!(key.to_protobuf())),
             key: key,
         })
     }
 
-    pub fn from_hash(hash: MultiHash) -> PeerId {
+    pub fn from_hash(hash: MultiHash<[u8; 32]>) -> PeerId {
         PeerId::Candidate {
             hash: hash,
         }
     }
 
-    pub fn hash(&self) -> Option<&MultiHash> {
+    pub fn hash(&self) -> Option<&MultiHash<[u8; 32]>> {
         Some(match *self {
             PeerId::Unknown => return None,
             PeerId::Proven { ref hash, .. } => hash,

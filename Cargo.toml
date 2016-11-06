@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Wim Looman <wim@nemo157.com>"]
 
 [dependencies]
-multihash = { path = "../multihash", features = ["generation", "validation", "sha2"] }
+mhash = { version = "*", features = ["generation", "validation", "sha2"] }
 protobuf = "*"
 ring = { path = "../ring", features = ["rsa_signing"] }
 untrusted = "*"

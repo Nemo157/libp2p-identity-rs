@@ -1,4 +1,4 @@
-extern crate multihash;
+extern crate mhash;
 extern crate protobuf;
 extern crate ring;
 extern crate untrusted;
