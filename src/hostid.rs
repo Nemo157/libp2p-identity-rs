@@ -6,14 +6,14 @@ use key::{ RSAPrivKey, RSAPubKey };
 
 #[derive(Debug)]
 pub struct HostId {
-    hash: MultiHash<[u8; 32]>,
+    hash: MultiHash,
     key: RSAPrivKey,
 }
 
 impl HostId {
-    pub fn new(hash: MultiHash<[u8; 32]>, key: RSAPrivKey) -> Result<HostId, ()> {
-        let key_bytes = try!(key.pub_key().to_protobuf().map_err(|_| ()));
-        if Some(Ok(true)) != hash.validate(key_bytes) {
+    pub fn new(hash: MultiHash, key: RSAPrivKey) -> Result<HostId, ()> {
+        let key_bytes = key.pub_key().to_protobuf().map_err(|_| ())?;
+        if Some(Ok(true)) != hash.validate(&key_bytes) {
             return Err(());
         }
 

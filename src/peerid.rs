@@ -7,18 +7,18 @@ use key::RSAPubKey;
 pub enum PeerId {
     Unknown,
     Candidate {
-        hash: MultiHash<[u8; 32]>,
+        hash: MultiHash,
     },
     Proven {
-        hash: MultiHash<[u8; 32]>,
+        hash: MultiHash,
         key: RSAPubKey,
     }
 }
 
 impl PeerId {
-    pub fn new(hash: MultiHash<[u8; 32]>, key: RSAPubKey) -> Result<PeerId, ()> {
-        let key_bytes = try!(key.to_protobuf().map_err(|_| ()));
-        if Some(Ok(true)) != hash.validate(key_bytes) {
+    pub fn new(hash: MultiHash, key: RSAPubKey) -> Result<PeerId, ()> {
+        let key_bytes = key.to_protobuf().map_err(|_| ())?;
+        if Some(Ok(true)) != hash.validate(&key_bytes) {
             return Err(());
         }
 
@@ -34,18 +34,18 @@ impl PeerId {
 
     pub fn from_key(key: RSAPubKey) -> io::Result<PeerId> {
         Ok(PeerId::Proven {
-            hash: MultiHash::generate_sha2_256(try!(key.to_protobuf())),
+            hash: MultiHash::generate_sha2_256(&key.to_protobuf()?),
             key: key,
         })
     }
 
-    pub fn from_hash(hash: MultiHash<[u8; 32]>) -> PeerId {
+    pub fn from_hash(hash: MultiHash) -> PeerId {
         PeerId::Candidate {
             hash: hash,
         }
     }
 
-    pub fn hash(&self) -> Option<&MultiHash<[u8; 32]>> {
+    pub fn hash(&self) -> Option<&MultiHash> {
         Some(match *self {
             PeerId::Unknown => return None,
             PeerId::Proven { ref hash, .. } => hash,
