@@ -4,7 +4,7 @@ use ring::rand::SecureRandom;
 
 use key::{ RSAPrivKey, RSAPubKey };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HostId {
     hash: MultiHash,
     key: RSAPrivKey,
