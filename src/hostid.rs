@@ -1,6 +1,5 @@
 use std::io;
 use mhash::MultiHash;
-use ring::rand::SecureRandom;
 
 use key::{ RSAPrivKey, RSAPubKey };
 
@@ -30,8 +29,8 @@ impl HostId {
         })
     }
 
-    pub fn sign(&self, rand: &SecureRandom, bytes: &[u8]) -> io::Result<Vec<u8>> {
-        self.key.sign(rand, bytes)
+    pub fn sign(&self, bytes: &[u8]) -> io::Result<Vec<u8>> {
+        self.key.sign(bytes)
     }
 
     pub fn pub_key(&self) -> &RSAPubKey {

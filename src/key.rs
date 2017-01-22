@@ -2,7 +2,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::io;
 use ring::der;
-use ring::rand::SecureRandom;
+use ring::rand::SystemRandom;
 use ring::signature::{ self, RSAKeyPair, RSASigningState };
 use ring::signature::primitive::verify_rsa;
 use protobuf::{ parse_from_bytes, Message, ProtobufError };
@@ -107,10 +107,11 @@ impl RSAPrivKey {
         &self.pub_key
     }
 
-    pub fn sign(&self, rand: &SecureRandom, bytes: &[u8]) -> io::Result<Vec<u8>> {
+    pub fn sign(&self, bytes: &[u8]) -> io::Result<Vec<u8>> {
+        let rand = SystemRandom::new();
         let mut sig = vec![0; self.key.public_modulus_len()];
         match RSASigningState::new(self.key.clone()) {
-            Ok(mut state) => match state.sign(&signature::RSA_PKCS1_SHA256, rand, bytes, &mut sig) {
+            Ok(mut state) => match state.sign(&signature::RSA_PKCS1_SHA256, &rand, bytes, &mut sig) {
                 Ok(()) => Ok(sig),
                 Err(_) => Err(io::Error::new(io::ErrorKind::Other, "failed to sign")),
             },
