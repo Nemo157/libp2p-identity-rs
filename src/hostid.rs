@@ -36,4 +36,8 @@ impl HostId {
     pub fn pub_key(&self) -> &RSAPubKey {
         self.key.pub_key()
     }
+
+    pub fn hash(&self) -> &MultiHash {
+        &self.hash
+    }
 }
