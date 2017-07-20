@@ -16,17 +16,13 @@ impl HostId {
             return Err(());
         }
 
-        Ok(HostId {
-            hash: hash,
-            key: key,
-        })
+        Ok(HostId { hash, key })
     }
 
     pub fn from_der(priv_bytes: Vec<u8>, pub_bytes: Vec<u8>) -> io::Result<HostId> {
-        Ok(HostId {
-            hash: MultiHash::generate_sha2_256(&pub_bytes),
-            key: try!(RSAPrivKey::from_der(priv_bytes, pub_bytes)),
-        })
+        let key = RSAPrivKey::from_der(priv_bytes, pub_bytes)?;
+        let hash = MultiHash::generate_sha2_256(&key.pub_key().to_protobuf()?);
+        Ok(HostId { hash, key })
     }
 
     pub fn sign(&self, bytes: &[u8]) -> io::Result<Vec<u8>> {
