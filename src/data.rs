@@ -9,6 +9,7 @@
 
 #![allow(box_pointers)]
 #![allow(dead_code)]
+#![allow(missing_docs)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -20,14 +21,14 @@
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 
-#[derive(Clone,Default)]
+#[derive(PartialEq,Clone,Default)]
 pub struct PublicKey {
     // message fields
     Type: ::std::option::Option<KeyType>,
     Data: ::protobuf::SingularField<::std::vec::Vec<u8>>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -44,14 +45,7 @@ impl PublicKey {
             ptr: 0 as *const PublicKey,
         };
         unsafe {
-            instance.get(|| {
-                PublicKey {
-                    Type: ::std::option::Option::None,
-                    Data: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(PublicKey::new)
         }
     }
 
@@ -74,6 +68,14 @@ impl PublicKey {
         self.Type.unwrap_or(KeyType::RSA)
     }
 
+    fn get_Type_for_reflect(&self) -> &::std::option::Option<KeyType> {
+        &self.Type
+    }
+
+    fn mut_Type_for_reflect(&mut self) -> &mut ::std::option::Option<KeyType> {
+        &mut self.Type
+    }
+
     // required bytes Data = 2;
 
     pub fn clear_Data(&mut self) {
@@ -94,7 +96,7 @@ impl PublicKey {
     pub fn mut_Data(&mut self) -> &mut ::std::vec::Vec<u8> {
         if self.Data.is_none() {
             self.Data.set_default();
-        };
+        }
         self.Data.as_mut().unwrap()
     }
 
@@ -109,35 +111,43 @@ impl PublicKey {
             None => &[],
         }
     }
+
+    fn get_Data_for_reflect(&self) -> &::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &self.Data
+    }
+
+    fn mut_Data_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &mut self.Data
+    }
 }
 
 impl ::protobuf::Message for PublicKey {
     fn is_initialized(&self) -> bool {
         if self.Type.is_none() {
             return false;
-        };
+        }
         if self.Data.is_none() {
             return false;
-        };
+        }
         true
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    };
-                    let tmp = try!(is.read_enum());
+                    }
+                    let tmp = is.read_enum()?;
                     self.Type = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.Data));
+                    ::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.Data)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -148,12 +158,12 @@ impl ::protobuf::Message for PublicKey {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.Type.iter() {
-            my_size += ::protobuf::rt::enum_size(1, *value);
-        };
-        for value in self.Data.iter() {
-            my_size += ::protobuf::rt::bytes_size(2, &value);
-        };
+        if let Some(v) = self.Type {
+            my_size += ::protobuf::rt::enum_size(1, v);
+        }
+        if let Some(ref v) = self.Data.as_ref() {
+            my_size += ::protobuf::rt::bytes_size(2, &v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -161,12 +171,12 @@ impl ::protobuf::Message for PublicKey {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.Type {
-            try!(os.write_enum(1, v.value()));
-        };
-        if let Some(v) = self.Data.as_ref() {
-            try!(os.write_bytes(2, &v));
-        };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+            os.write_enum(1, v.value())?;
+        }
+        if let Some(ref v) = self.Data.as_ref() {
+            os.write_bytes(2, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -182,12 +192,14 @@ impl ::protobuf::Message for PublicKey {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<PublicKey>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -208,15 +220,15 @@ impl ::protobuf::MessageStatic for PublicKey {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<KeyType>>(
                     "Type",
-                    PublicKey::has_Type,
-                    PublicKey::get_Type,
+                    PublicKey::get_Type_for_reflect,
+                    PublicKey::mut_Type_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_bytes_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
                     "Data",
-                    PublicKey::has_Data,
-                    PublicKey::get_Data,
+                    PublicKey::get_Data_for_reflect,
+                    PublicKey::mut_Data_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<PublicKey>(
                     "PublicKey",
@@ -236,28 +248,26 @@ impl ::protobuf::Clear for PublicKey {
     }
 }
 
-impl ::std::cmp::PartialEq for PublicKey {
-    fn eq(&self, other: &PublicKey) -> bool {
-        self.Type == other.Type &&
-        self.Data == other.Data &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-#[derive(Clone,Default)]
+impl ::protobuf::reflect::ProtobufValue for PublicKey {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct PrivateKey {
     // message fields
     Type: ::std::option::Option<KeyType>,
     Data: ::protobuf::SingularField<::std::vec::Vec<u8>>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::std::cell::Cell<u32>,
+    cached_size: ::protobuf::CachedSize,
 }
 
 // see codegen.rs for the explanation why impl Sync explicitly
@@ -274,14 +284,7 @@ impl PrivateKey {
             ptr: 0 as *const PrivateKey,
         };
         unsafe {
-            instance.get(|| {
-                PrivateKey {
-                    Type: ::std::option::Option::None,
-                    Data: ::protobuf::SingularField::none(),
-                    unknown_fields: ::protobuf::UnknownFields::new(),
-                    cached_size: ::std::cell::Cell::new(0),
-                }
-            })
+            instance.get(PrivateKey::new)
         }
     }
 
@@ -304,6 +307,14 @@ impl PrivateKey {
         self.Type.unwrap_or(KeyType::RSA)
     }
 
+    fn get_Type_for_reflect(&self) -> &::std::option::Option<KeyType> {
+        &self.Type
+    }
+
+    fn mut_Type_for_reflect(&mut self) -> &mut ::std::option::Option<KeyType> {
+        &mut self.Type
+    }
+
     // required bytes Data = 2;
 
     pub fn clear_Data(&mut self) {
@@ -324,7 +335,7 @@ impl PrivateKey {
     pub fn mut_Data(&mut self) -> &mut ::std::vec::Vec<u8> {
         if self.Data.is_none() {
             self.Data.set_default();
-        };
+        }
         self.Data.as_mut().unwrap()
     }
 
@@ -339,35 +350,43 @@ impl PrivateKey {
             None => &[],
         }
     }
+
+    fn get_Data_for_reflect(&self) -> &::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &self.Data
+    }
+
+    fn mut_Data_for_reflect(&mut self) -> &mut ::protobuf::SingularField<::std::vec::Vec<u8>> {
+        &mut self.Data
+    }
 }
 
 impl ::protobuf::Message for PrivateKey {
     fn is_initialized(&self) -> bool {
         if self.Type.is_none() {
             return false;
-        };
+        }
         if self.Data.is_none() {
             return false;
-        };
+        }
         true
     }
 
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !try!(is.eof()) {
-            let (field_number, wire_type) = try!(is.read_tag_unpack());
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    };
-                    let tmp = try!(is.read_enum());
+                    }
+                    let tmp = is.read_enum()?;
                     self.Type = ::std::option::Option::Some(tmp);
                 },
                 2 => {
-                    try!(::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.Data));
+                    ::protobuf::rt::read_singular_bytes_into(wire_type, is, &mut self.Data)?;
                 },
                 _ => {
-                    try!(::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields()));
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
             };
         }
@@ -378,12 +397,12 @@ impl ::protobuf::Message for PrivateKey {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.Type.iter() {
-            my_size += ::protobuf::rt::enum_size(1, *value);
-        };
-        for value in self.Data.iter() {
-            my_size += ::protobuf::rt::bytes_size(2, &value);
-        };
+        if let Some(v) = self.Type {
+            my_size += ::protobuf::rt::enum_size(1, v);
+        }
+        if let Some(ref v) = self.Data.as_ref() {
+            my_size += ::protobuf::rt::bytes_size(2, &v);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -391,12 +410,12 @@ impl ::protobuf::Message for PrivateKey {
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
         if let Some(v) = self.Type {
-            try!(os.write_enum(1, v.value()));
-        };
-        if let Some(v) = self.Data.as_ref() {
-            try!(os.write_bytes(2, &v));
-        };
-        try!(os.write_unknown_fields(self.get_unknown_fields()));
+            os.write_enum(1, v.value())?;
+        }
+        if let Some(ref v) = self.Data.as_ref() {
+            os.write_bytes(2, &v)?;
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
 
@@ -412,12 +431,14 @@ impl ::protobuf::Message for PrivateKey {
         &mut self.unknown_fields
     }
 
-    fn type_id(&self) -> ::std::any::TypeId {
-        ::std::any::TypeId::of::<PrivateKey>()
-    }
-
     fn as_any(&self) -> &::std::any::Any {
         self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
     }
 
     fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -438,15 +459,15 @@ impl ::protobuf::MessageStatic for PrivateKey {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_singular_enum_accessor(
+                fields.push(::protobuf::reflect::accessor::make_option_accessor::<_, ::protobuf::types::ProtobufTypeEnum<KeyType>>(
                     "Type",
-                    PrivateKey::has_Type,
-                    PrivateKey::get_Type,
+                    PrivateKey::get_Type_for_reflect,
+                    PrivateKey::mut_Type_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_singular_bytes_accessor(
+                fields.push(::protobuf::reflect::accessor::make_singular_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
                     "Data",
-                    PrivateKey::has_Data,
-                    PrivateKey::get_Data,
+                    PrivateKey::get_Data_for_reflect,
+                    PrivateKey::mut_Data_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<PrivateKey>(
                     "PrivateKey",
@@ -466,17 +487,15 @@ impl ::protobuf::Clear for PrivateKey {
     }
 }
 
-impl ::std::cmp::PartialEq for PrivateKey {
-    fn eq(&self, other: &PrivateKey) -> bool {
-        self.Type == other.Type &&
-        self.Data == other.Data &&
-        self.unknown_fields == other.unknown_fields
-    }
-}
-
 impl ::std::fmt::Debug for PrivateKey {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for PrivateKey {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
 }
 
@@ -504,7 +523,7 @@ impl ::protobuf::ProtobufEnum for KeyType {
         values
     }
 
-    fn enum_descriptor_static(_: Option<KeyType>) -> &'static ::protobuf::reflect::EnumDescriptor {
+    fn enum_descriptor_static(_: ::std::option::Option<KeyType>) -> &'static ::protobuf::reflect::EnumDescriptor {
         static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
             ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
@@ -520,42 +539,38 @@ impl ::protobuf::ProtobufEnum for KeyType {
 impl ::std::marker::Copy for KeyType {
 }
 
-static file_descriptor_proto_data: &'static [u8] = &[
-    0x0a, 0x0e, 0x73, 0x72, 0x63, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-    0x22, 0x31, 0x0a, 0x09, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x4b, 0x65, 0x79, 0x12, 0x16, 0x0a,
-    0x04, 0x54, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x02, 0x28, 0x0e, 0x32, 0x08, 0x2e, 0x4b, 0x65,
-    0x79, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0c, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x02, 0x20,
-    0x02, 0x28, 0x0c, 0x22, 0x32, 0x0a, 0x0a, 0x50, 0x72, 0x69, 0x76, 0x61, 0x74, 0x65, 0x4b, 0x65,
-    0x79, 0x12, 0x16, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x02, 0x28, 0x0e, 0x32,
-    0x08, 0x2e, 0x4b, 0x65, 0x79, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0c, 0x0a, 0x04, 0x44, 0x61, 0x74,
-    0x61, 0x18, 0x02, 0x20, 0x02, 0x28, 0x0c, 0x2a, 0x12, 0x0a, 0x07, 0x4b, 0x65, 0x79, 0x54, 0x79,
-    0x70, 0x65, 0x12, 0x07, 0x0a, 0x03, 0x52, 0x53, 0x41, 0x10, 0x00, 0x4a, 0x8d, 0x03, 0x0a, 0x06,
-    0x12, 0x04, 0x00, 0x00, 0x0c, 0x01, 0x0a, 0x0a, 0x0a, 0x02, 0x05, 0x00, 0x12, 0x04, 0x00, 0x00,
-    0x02, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x05, 0x00, 0x01, 0x12, 0x03, 0x00, 0x05, 0x0c, 0x0a, 0x0b,
-    0x0a, 0x04, 0x05, 0x00, 0x02, 0x00, 0x12, 0x03, 0x01, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x05,
-    0x00, 0x02, 0x00, 0x01, 0x12, 0x03, 0x01, 0x02, 0x05, 0x0a, 0x0c, 0x0a, 0x05, 0x05, 0x00, 0x02,
-    0x00, 0x02, 0x12, 0x03, 0x01, 0x08, 0x09, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x00, 0x12, 0x04, 0x04,
-    0x00, 0x07, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x00, 0x01, 0x12, 0x03, 0x04, 0x08, 0x11, 0x0a,
-    0x0b, 0x0a, 0x04, 0x04, 0x00, 0x02, 0x00, 0x12, 0x03, 0x05, 0x02, 0x1c, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x00, 0x02, 0x00, 0x04, 0x12, 0x03, 0x05, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00,
-    0x02, 0x00, 0x06, 0x12, 0x03, 0x05, 0x0b, 0x12, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x00,
-    0x01, 0x12, 0x03, 0x05, 0x13, 0x17, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x00, 0x03, 0x12,
-    0x03, 0x05, 0x1a, 0x1b, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x00, 0x02, 0x01, 0x12, 0x03, 0x06, 0x02,
-    0x1a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x01, 0x04, 0x12, 0x03, 0x06, 0x02, 0x0a, 0x0a,
-    0x0c, 0x0a, 0x05, 0x04, 0x00, 0x02, 0x01, 0x05, 0x12, 0x03, 0x06, 0x0b, 0x10, 0x0a, 0x0c, 0x0a,
-    0x05, 0x04, 0x00, 0x02, 0x01, 0x01, 0x12, 0x03, 0x06, 0x11, 0x15, 0x0a, 0x0c, 0x0a, 0x05, 0x04,
-    0x00, 0x02, 0x01, 0x03, 0x12, 0x03, 0x06, 0x18, 0x19, 0x0a, 0x0a, 0x0a, 0x02, 0x04, 0x01, 0x12,
-    0x04, 0x09, 0x00, 0x0c, 0x01, 0x0a, 0x0a, 0x0a, 0x03, 0x04, 0x01, 0x01, 0x12, 0x03, 0x09, 0x08,
-    0x12, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x01, 0x02, 0x00, 0x12, 0x03, 0x0a, 0x02, 0x1c, 0x0a, 0x0c,
-    0x0a, 0x05, 0x04, 0x01, 0x02, 0x00, 0x04, 0x12, 0x03, 0x0a, 0x02, 0x0a, 0x0a, 0x0c, 0x0a, 0x05,
-    0x04, 0x01, 0x02, 0x00, 0x06, 0x12, 0x03, 0x0a, 0x0b, 0x12, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01,
-    0x02, 0x00, 0x01, 0x12, 0x03, 0x0a, 0x13, 0x17, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x00,
-    0x03, 0x12, 0x03, 0x0a, 0x1a, 0x1b, 0x0a, 0x0b, 0x0a, 0x04, 0x04, 0x01, 0x02, 0x01, 0x12, 0x03,
-    0x0b, 0x02, 0x1a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x04, 0x12, 0x03, 0x0b, 0x02,
-    0x0a, 0x0a, 0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x05, 0x12, 0x03, 0x0b, 0x0b, 0x10, 0x0a,
-    0x0c, 0x0a, 0x05, 0x04, 0x01, 0x02, 0x01, 0x01, 0x12, 0x03, 0x0b, 0x11, 0x15, 0x0a, 0x0c, 0x0a,
-    0x05, 0x04, 0x01, 0x02, 0x01, 0x03, 0x12, 0x03, 0x0b, 0x18, 0x19,
-];
+impl ::protobuf::reflect::ProtobufValue for KeyType {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
+    }
+}
+
+static file_descriptor_proto_data: &'static [u8] = b"\
+    \n\x0esrc/data.proto\"=\n\tPublicKey\x12\x1c\n\x04Type\x18\x01\x20\x02(\
+    \x0e2\x08.KeyTypeR\x04Type\x12\x12\n\x04Data\x18\x02\x20\x02(\x0cR\x04Da\
+    ta\">\n\nPrivateKey\x12\x1c\n\x04Type\x18\x01\x20\x02(\x0e2\x08.KeyTypeR\
+    \x04Type\x12\x12\n\x04Data\x18\x02\x20\x02(\x0cR\x04Data*\x12\n\x07KeyTy\
+    pe\x12\x07\n\x03RSA\x10\0J\x8d\x03\n\x06\x12\x04\0\0\x0c\x01\n\n\n\x02\
+    \x05\0\x12\x04\0\0\x02\x01\n\n\n\x03\x05\0\x01\x12\x03\0\x05\x0c\n\x0b\n\
+    \x04\x05\0\x02\0\x12\x03\x01\x02\n\n\x0c\n\x05\x05\0\x02\0\x01\x12\x03\
+    \x01\x02\x05\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x01\x08\t\n\n\n\x02\x04\
+    \0\x12\x04\x04\0\x07\x01\n\n\n\x03\x04\0\x01\x12\x03\x04\x08\x11\n\x0b\n\
+    \x04\x04\0\x02\0\x12\x03\x05\x02\x1c\n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\
+    \x05\x02\n\n\x0c\n\x05\x04\0\x02\0\x06\x12\x03\x05\x0b\x12\n\x0c\n\x05\
+    \x04\0\x02\0\x01\x12\x03\x05\x13\x17\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\
+    \x05\x1a\x1b\n\x0b\n\x04\x04\0\x02\x01\x12\x03\x06\x02\x1a\n\x0c\n\x05\
+    \x04\0\x02\x01\x04\x12\x03\x06\x02\n\n\x0c\n\x05\x04\0\x02\x01\x05\x12\
+    \x03\x06\x0b\x10\n\x0c\n\x05\x04\0\x02\x01\x01\x12\x03\x06\x11\x15\n\x0c\
+    \n\x05\x04\0\x02\x01\x03\x12\x03\x06\x18\x19\n\n\n\x02\x04\x01\x12\x04\t\
+    \0\x0c\x01\n\n\n\x03\x04\x01\x01\x12\x03\t\x08\x12\n\x0b\n\x04\x04\x01\
+    \x02\0\x12\x03\n\x02\x1c\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\n\x02\n\n\
+    \x0c\n\x05\x04\x01\x02\0\x06\x12\x03\n\x0b\x12\n\x0c\n\x05\x04\x01\x02\0\
+    \x01\x12\x03\n\x13\x17\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\n\x1a\x1b\n\
+    \x0b\n\x04\x04\x01\x02\x01\x12\x03\x0b\x02\x1a\n\x0c\n\x05\x04\x01\x02\
+    \x01\x04\x12\x03\x0b\x02\n\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03\x0b\
+    \x0b\x10\n\x0c\n\x05\x04\x01\x02\x01\x01\x12\x03\x0b\x11\x15\n\x0c\n\x05\
+    \x04\x01\x02\x01\x03\x12\x03\x0b\x18\x19\
+";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {
     lock: ::protobuf::lazy::ONCE_INIT,

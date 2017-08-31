@@ -24,12 +24,7 @@ pub struct RSAPrivKey {
 }
 
 fn pbetio(e: ProtobufError) -> io::Error {
-    match e {
-        ProtobufError::IoError(e) => e,
-        ProtobufError::WireError(m) => io::Error::new(io::ErrorKind::Other, m),
-        ProtobufError::MessageNotInitialized { message: m } =>
-            io::Error::new(io::ErrorKind::Other, m),
-    }
+    io::Error::new(io::ErrorKind::Other, e)
 }
 
 // from PKIX, see RFC 3280 appendix C.3
