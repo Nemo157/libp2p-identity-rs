@@ -1,9 +1,11 @@
+use std::fmt;
 use std::io;
+
 use mhash::MultiHash;
 
 use key::{ RSAPrivKey, RSAPubKey };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct HostId {
     hash: MultiHash,
     key: RSAPrivKey,
@@ -35,5 +37,18 @@ impl HostId {
 
     pub fn hash(&self) -> &MultiHash {
         &self.hash
+    }
+}
+
+impl fmt::Debug for HostId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "HostId(\"{}\")", self.hash)
+        } else {
+            f.debug_struct("HostId")
+                .field("hash", &self.hash)
+                .field("key", &self.key)
+                .finish()
+        }
     }
 }

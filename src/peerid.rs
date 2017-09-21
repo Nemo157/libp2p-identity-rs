@@ -1,9 +1,11 @@
+use std::fmt;
 use std::io;
+
 use mhash::MultiHash;
 
 use key::RSAPubKey;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum PeerId {
     Unknown,
     Candidate {
@@ -68,6 +70,36 @@ impl PeerId {
         match *self {
             PeerId::Proven { ref key, .. } => key.verify(msg, sig),
             _ => Err(io::Error::new(io::ErrorKind::Other, "no public key")),
+        }
+    }
+}
+
+impl fmt::Debug for PeerId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            match *self {
+                PeerId::Unknown =>
+                    write!(f, "Unknown"),
+                PeerId::Candidate { ref hash } =>
+                    write!(f, "Candidate(\"{}\")", hash),
+                PeerId::Proven { ref hash, .. } =>
+                    write!(f, "Proven(\"{}\")", hash),
+            }
+        } else {
+            match *self {
+                PeerId::Unknown =>
+                    f.debug_tuple("Unknown")
+                        .finish(),
+                PeerId::Candidate { ref hash } =>
+                    f.debug_struct("Candidate")
+                        .field("hash", hash)
+                        .finish(),
+                PeerId::Proven { ref hash, ref key } =>
+                    f.debug_struct("Proven")
+                        .field("hash", hash)
+                        .field("key", key)
+                        .finish(),
+            }
         }
     }
 }
