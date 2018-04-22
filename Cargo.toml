@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Wim Looman <wim@nemo157.com>"]
 
 [dependencies]
-mhash = { version = "0.2.0", features = ["generation", "validation", "sha2"] }
+mhash = { version = "0.3.0", features = ["generation", "validation", "sha2"] }
 protobuf = "1.4.1"
 ring = { version = "0.12.1", features = ["rsa_signing"] }
 untrusted = "0.5.0"
