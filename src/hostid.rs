@@ -4,6 +4,7 @@ use std::io;
 use mhash::MultiHash;
 
 use key::{ RSAPrivKey, RSAPubKey };
+use peerid::PeerId;
 
 #[derive(Clone)]
 pub struct HostId {
@@ -37,6 +38,13 @@ impl HostId {
 
     pub fn hash(&self) -> &MultiHash {
         &self.hash
+    }
+
+    pub fn to_peerid(&self) -> PeerId {
+        PeerId::Proven {
+            hash: self.hash.clone(),
+            key: self.pub_key().clone(),
+        }
     }
 }
 
