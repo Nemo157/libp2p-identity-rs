@@ -8,8 +8,8 @@ mhash = { version = "0.3.0", features = ["generation", "validation", "sha2"] }
 ring = { version = "0.12.1", features = ["rsa_signing"] }
 untrusted = "0.5.0"
 bytes = "0.4.6"
-prost = "0.3.2"
-prost-derive = "0.3.2"
+prost = { git = "https://github.com/Nemo157/prost", branch = "enum-as-newtype" }
+prost-derive = { git = "https://github.com/Nemo157/prost", branch = "enum-as-newtype" }
 
 [build-dependencies]
-prost-build = "0.3.2"
+prost-build = { git = "https://github.com/Nemo157/prost", branch = "enum-as-newtype" }

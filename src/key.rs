@@ -55,18 +55,21 @@ fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
         let message = data::PublicKey::decode(bytes)?;
-        let type_ = data::KeyType::from_i32(message.type_)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, format!("Unknown KeyType {}", message.type_)))?;
-        match type_ {
-            data::KeyType::Rsa => {
+        match message.type_ {
+            data::KeyType::RSA => {
                 Ok(RSAPubKey { bytes: message.data })
+            }
+            other => {
+                Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("unexpected key type {}", Into::<i32>::into(other))))
             }
         }
     }
 
     pub fn to_protobuf(&self) -> io::Result<Vec<u8>> {
         let serialized = data::PublicKey {
-            type_: data::KeyType::Rsa as i32,
+            type_: data::KeyType::RSA,
             data: self.bytes.clone(),
         };
         let mut bytes = Vec::with_capacity(serialized.encoded_len());
