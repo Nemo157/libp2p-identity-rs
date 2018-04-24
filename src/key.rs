@@ -54,11 +54,14 @@ fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> 
 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
-        let serialized = data::PublicKey::decode(bytes)?;
-        if serialized.type_ != (data::KeyType::Rsa as i32) {
-            return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
+        let message = data::PublicKey::decode(bytes)?;
+        let type_ = data::KeyType::from_i32(message.type_)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, format!("Unknown KeyType {}", message.type_)))?;
+        match type_ {
+            data::KeyType::Rsa => {
+                Ok(RSAPubKey { bytes: message.data })
+            }
         }
-        Ok(RSAPubKey { bytes: serialized.data })
     }
 
     pub fn to_protobuf(&self) -> io::Result<Vec<u8>> {
