@@ -5,8 +5,8 @@ use ring::der;
 use ring::rand::SystemRandom;
 use ring::signature::{ self, RSAKeyPair, RSASigningState };
 use ring::signature::primitive::verify_rsa;
-use protobuf::{ parse_from_bytes, Message, ProtobufError };
 use untrusted::Input;
+use prost::Message;
 
 use data;
 
@@ -23,7 +23,7 @@ pub struct RSAPrivKey {
     pub_key: RSAPubKey,
 }
 
-fn pbetio(e: ProtobufError) -> io::Error {
+fn to_io_error<E: ::std::error::Error + Send + Sync + 'static>(e: E) -> io::Error {
     io::Error::new(io::ErrorKind::Other, e)
 }
 
@@ -58,18 +58,21 @@ fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> 
 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
-        let mut serialized: data::PublicKey = try!(parse_from_bytes(bytes).map_err(pbetio));
-        if serialized.get_Type() != data::KeyType::RSA {
+        let serialized = data::PublicKey::decode(bytes).map_err(to_io_error)?;
+        if serialized.type_ != (data::KeyType::Rsa as i32) {
             return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
         }
-        Ok(RSAPubKey { bytes: serialized.take_Data() })
+        Ok(RSAPubKey { bytes: serialized.data })
     }
 
     pub fn to_protobuf(&self) -> io::Result<Vec<u8>> {
-        let mut serialized = data::PublicKey::new();
-        serialized.set_Type(data::KeyType::RSA);
-        serialized.set_Data(self.bytes.clone());
-        serialized.write_to_bytes().map_err(pbetio)
+        let serialized = data::PublicKey {
+            type_: data::KeyType::Rsa as i32,
+            data: self.bytes.clone(),
+        };
+        let mut bytes = Vec::with_capacity(serialized.encoded_len());
+        serialized.encode(&mut bytes).map_err(to_io_error)?;
+        Ok(bytes)
     }
 
     pub fn as_bytes(&self) -> &[u8] {

@@ -1,9 +1,14 @@
 extern crate mhash;
-extern crate protobuf;
 extern crate ring;
 extern crate untrusted;
+extern crate prost;
+#[macro_use]
+extern crate prost_derive;
 
-mod data;
+mod data {
+    include!(concat!(env!("OUT_DIR"), "/data.rs"));
+}
+
 mod hostid;
 mod key;
 mod peerid;
