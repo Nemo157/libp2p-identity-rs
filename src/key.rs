@@ -23,10 +23,6 @@ pub struct RSAPrivKey {
     pub_key: RSAPubKey,
 }
 
-fn to_io_error<E: ::std::error::Error + Send + Sync + 'static>(e: E) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, e)
-}
-
 // from PKIX, see RFC 3280 appendix C.3
 fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> {
     input.read_all((), |input| {
@@ -58,7 +54,7 @@ fn parse_public_key<'a>(input: Input<'a>) -> Result<(Input<'a>, Input<'a>), ()> 
 
 impl RSAPubKey {
     pub fn from_protobuf(bytes: &[u8]) -> io::Result<RSAPubKey> {
-        let serialized = data::PublicKey::decode(bytes).map_err(to_io_error)?;
+        let serialized = data::PublicKey::decode(bytes)?;
         if serialized.type_ != (data::KeyType::Rsa as i32) {
             return Err(io::Error::new(io::ErrorKind::Other, "Only handle rsa pub keys"));
         }
@@ -71,7 +67,7 @@ impl RSAPubKey {
             data: self.bytes.clone(),
         };
         let mut bytes = Vec::with_capacity(serialized.encoded_len());
-        serialized.encode(&mut bytes).map_err(to_io_error)?;
+        serialized.encode(&mut bytes)?;
         Ok(bytes)
     }
 
